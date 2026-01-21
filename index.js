@@ -1,24 +1,17 @@
 const http = require('http');
 const httpProxy = require('http-proxy');
 
-// Proxy සර්වර් එක නිර්මාණය කිරීම
-const proxy = httpProxy.createProxyServer({});
+const proxy = httpProxy.createProxyServer({ changeOrigin: true, secure: false });
 
-// ලැබෙන රික්වෙස්ට් එක Target URL එකට හරවා යැවීම
 const server = http.createServer((req, res) => {
-    // සර්වර් එක වැඩ කරනවද කියලා බලන්න පොඩි check එකක්
-    if (req.url === '/') {
-        return res.end("Proxy Bridge is Running!");
+    // URL එකෙන් "/" අයින් කරලා පෝර්න්හබ් ලින්ක් එක ගන්නවා
+    const targetUrl = req.url.substring(1); 
+
+    if (!targetUrl || !targetUrl.startsWith('http')) {
+        return res.end("Koyeb Proxy is Active. Send URL after /");
     }
 
-    // Hugging Face එකෙන් එවන Target URL එක මෙතනින් handle වෙනවා
-    proxy.web(req, res, { 
-        target: req.url, 
-        changeOrigin: true,
-        prependPath: false
-    });
+    proxy.web(req, res, { target: targetUrl });
 });
 
-// Koyeb එකේ Port එකට සවන් දීම
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => console.log(`Proxy Bridge on port ${PORT}`));
+server.listen(process.env.PORT || 8080);
